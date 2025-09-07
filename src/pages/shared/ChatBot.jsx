@@ -782,10 +782,10 @@ const Chatbot = () => {
                 Fiction Books
               </button>
               <button
-                onClick={() => setInputValue("Show me science books")}
+                onClick={() => setInputValue("Show me mystery books")}
                 className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full hover:bg-green-200 transition-colors"
               >
-                Science Books
+                Mystery Books
               </button>
               <button
                 onClick={() => setInputValue("Books by J.K. Rowling")}
@@ -797,7 +797,7 @@ const Chatbot = () => {
                 onClick={() => setInputValue("Programming books")}
                 className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full hover:bg-yellow-200 transition-colors"
               >
-                Programming
+                Thriller
               </button>
               <button
                 onClick={() => setInputValue("Any good books to read?")}
