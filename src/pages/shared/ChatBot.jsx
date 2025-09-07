@@ -794,7 +794,7 @@ const Chatbot = () => {
                 By Author
               </button>
               <button
-                onClick={() => setInputValue("Programming books")}
+                onClick={() => setInputValue("Thriller books")}
                 className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs rounded-full hover:bg-yellow-200 transition-colors"
               >
                 Thriller
