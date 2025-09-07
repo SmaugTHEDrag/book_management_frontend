@@ -248,8 +248,19 @@ const BlogDetail = () => {
   const token = localStorage.getItem("token");
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
   const isLoggedIn = Boolean(user?.login);
-  const isOwner = blog && isLoggedIn && blog.username === user?.login;
-  const canModify = blog && isLoggedIn && (blog.username === user?.login);
+  
+  // Separate logic for editing and deleting blogs
+  const canEditBlog = useMemo(() => {
+    if (!blog || !isLoggedIn) return false;
+    // Only the blog owner can edit their own blog
+    return blog.username === user?.login;
+  }, [blog, isLoggedIn, user?.login]);
+
+  const canDeleteBlog = useMemo(() => {
+    if (!blog || !isLoggedIn) return false;
+    // Admin can delete any blog OR blog owner can delete their own blog
+    return user?.role === "ADMIN" || blog.username === user?.login;
+  }, [blog, isLoggedIn, user?.role, user?.login]);
 
   useEffect(() => {
     fetchBlogDetail();
@@ -535,28 +546,34 @@ const BlogDetail = () => {
                 {blog.hasLiked ? <AiFillHeart className="w-5 h-5" /> : <AiOutlineHeart className="w-5 h-5" />}
                 <span>{blog.likeCount} {blog.likeCount === 1 ? 'Like' : 'Likes'}</span>
               </button>
-              {canModify && !editing && (
-                <>
-                  <button
-                    className="p-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                    onClick={startEdit}
-                    title="Edit post"
-                  >
-                    <AiOutlineEdit className="w-5 h-5" />
-                  </button>
-                  <button
-                    className="p-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                    onClick={() => {
-                      const confirmMessage = user?.login === blog.username 
-                        ? "Delete your post?" 
-                        : "Delete this post? (Admin action)";
-                      if (confirm(confirmMessage)) removeBlog();
-                    }}
-                    title={user?.login === blog.username ? "Delete post" : "Delete post (Admin)"}
-                  >
-                    <AiOutlineDelete className="w-5 h-5" />
-                  </button>
-                </>
+              {!editing && canEditBlog && (
+                <button
+                  className="p-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                  onClick={startEdit}
+                  title="Edit your post"
+                >
+                  <AiOutlineEdit className="w-5 h-5" />
+                </button>
+              )}
+              {!editing && canDeleteBlog && (
+                <button
+                  className="p-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                  onClick={() => {
+                    const confirmMessage = user?.role === "ADMIN" && blog.username !== user?.login
+                      ? `Delete this post by ${blog.username}? (Admin action)`
+                      : "Delete your post?";
+                    if (confirm(confirmMessage)) {
+                      removeBlog();
+                    }
+                  }}
+                  title={
+                    user?.role === "ADMIN" && blog.username !== user?.login
+                      ? "Delete post (Admin)"
+                      : "Delete your post"
+                  }
+                >
+                  <AiOutlineDelete className="w-5 h-5" />
+                </button>
               )}
             </div>
 

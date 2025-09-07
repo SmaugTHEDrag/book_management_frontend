@@ -246,7 +246,19 @@ const Blog = () => {
   );
 
   const isLoggedIn = Boolean(user?.login);
-  const canModify = (post) => isLoggedIn && (post?.username === user?.login);
+  
+  // Separate logic for editing and deleting blogs
+  const canEditBlog = (post) => {
+    if (!isLoggedIn) return false;
+    // Only the blog owner can edit their own blog
+    return post?.username === user?.login;
+  };
+
+  const canDeleteBlog = (post) => {
+    if (!isLoggedIn) return false;
+    // Admin can delete any blog OR blog owner can delete their own blog
+    return user?.role === "ADMIN" || post?.username === user?.login;
+  };
 
   const toggleComments = (blogId) => {
     setExpandedComments((prev) => ({ ...prev, [blogId]: !prev[blogId] }));
@@ -611,52 +623,63 @@ const Blog = () => {
                   </button>
 
                   <div className="flex items-center gap-2">
-                    {canModify(post) && (
-                      editingMap[post.id] ? (
-                        <>
-                          <button
-                            className="px-3 py-1.5 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors font-medium"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              saveEdit(post.id);
-                            }}
-                          >
-                            Save
-                          </button>
-                          <button
-                            className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              cancelEdit(post.id);
-                            }}
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <>
+                    {editingMap[post.id] ? (
+                      <>
+                        <button
+                          className="px-3 py-1.5 text-sm text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors font-medium"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            saveEdit(post.id);
+                          }}
+                        >
+                          Save
+                        </button>
+                        <button
+                          className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors font-medium"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            cancelEdit(post.id);
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {canEditBlog(post) && (
                           <button
                             className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
                               startEdit(post);
                             }}
-                            title="Edit post"
+                            title="Edit your post"
                           >
                             <AiOutlineEdit className="w-4 h-4" />
                           </button>
+                        )}
+                        {canDeleteBlog(post) && (
                           <button
                             className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm("Delete this post?")) removeBlog(post.id);
+                              const confirmMessage = user.role === "ADMIN" && post.username !== user.login
+                                ? `Delete this post by ${post.username}? (Admin action)`
+                                : "Delete your post?";
+                              if (confirm(confirmMessage)) {
+                                removeBlog(post.id);
+                              }
                             }}
-                            title="Delete post"
+                            title={
+                              user.role === "ADMIN" && post.username !== user.login
+                                ? "Delete post (Admin)"
+                                : "Delete your post"
+                            }
                           >
                             <AiOutlineDelete className="w-4 h-4" />
                           </button>
-                        </>
-                      )
+                        )}
+                      </>
                     )}
                     <button
                       className="flex items-center gap-1 px-3 py-1.5 text-sm text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors font-medium"
