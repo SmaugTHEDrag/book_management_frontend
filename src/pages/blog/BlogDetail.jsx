@@ -36,9 +36,6 @@ const Comment = memo(({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner
     // Only comment owner can edit their own comment
     if (user.login === comment.username) return true;
     
-    // Admin can also edit any comment
-    if (user.role === "ADMIN") return true;
-    
     return false;
   }, [user, comment.username]);
 
@@ -252,7 +249,7 @@ const BlogDetail = () => {
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
   const isLoggedIn = Boolean(user?.login);
   const isOwner = blog && isLoggedIn && blog.username === user?.login;
-  const canModify = blog && isLoggedIn && (blog.username === user?.login || user?.role === "ADMIN");
+  const canModify = blog && isLoggedIn && (blog.username === user?.login);
 
   useEffect(() => {
     fetchBlogDetail();

@@ -36,9 +36,6 @@ const Comment = ({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, cur
     // Only comment owner can edit their own comment
     if (user.login === comment.username) return true;
     
-    // Admin can also edit any comment
-    if (user.role === "ADMIN") return true;
-    
     return false;
   }, [user, comment.username]);
 
@@ -249,7 +246,7 @@ const Blog = () => {
   );
 
   const isLoggedIn = Boolean(user?.login);
-  const canModify = (post) => isLoggedIn && (post?.username === user?.login || user?.role === "ADMIN");
+  const canModify = (post) => isLoggedIn && (post?.username === user?.login);
 
   const toggleComments = (blogId) => {
     setExpandedComments((prev) => ({ ...prev, [blogId]: !prev[blogId] }));
