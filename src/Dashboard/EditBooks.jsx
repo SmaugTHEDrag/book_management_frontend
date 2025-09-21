@@ -1,5 +1,4 @@
-import React from 'react';
-import { Button, Label, TextInput, Textarea } from 'flowbite-react';
+import React, { useState } from 'react';
 import { useLoaderData, useParams, useLocation, useNavigate } from 'react-router-dom';
 
 const EditBooks = () => {
@@ -9,150 +8,322 @@ const EditBooks = () => {
   const navigate = useNavigate();
   const from = location.state?.from?.pathname || '/admin/dashboard/book';
 
-  const handleUpdate = (event) => {
+  // State for toggle between URL and file upload
+  const [useImageFile, setUseImageFile] = useState(false);
+  const [usePdfFile, setUsePdfFile] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [pdfFile, setPdfFile] = useState(null);
+  const [bookCategory, setBookCategory] = useState(category || "");
+  
+  // Form data state - matching UploadBook structure
+  const [formData, setFormData] = useState({
+    bookTitle: title || '',
+    authorName: author || '',
+    imageURL: image || '',
+    bookDescription: description || '',
+    bookPDFURL: pdf || ''
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleImageFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setImageFile(file);
+    }
+  };
+
+  const handlePdfFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      setPdfFile(file);
+    } else {
+      alert('Please select a valid PDF file');
+      event.target.value = '';
+    }
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    const form = event.target;
+    
+    const { bookTitle, authorName, bookDescription, imageURL, bookPDFURL } = formData;
 
-    const updatedBook = {
-      title: form.title.value,
-      author: form.author.value,
-      image: form.image.value,
-      category: form.category.value,
-      description: form.description.value,
-      pdf: form.pdf.value,
-    };
+    if (!bookTitle || !authorName || !bookCategory) {
+      alert('Please fill in all required fields');
+      return;
+    }
 
-  fetch("https://book-management-backend-d481.onrender.com/api/books/" + id, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(updatedBook),
-  })
-    .then(async (res) => {
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(errorText || "Failed to update");
+    // Validate required fields based on upload method
+    if (usePdfFile && !pdfFile) {
+      alert('Please select a PDF file');
+      return;
+    }
+    
+    if (!usePdfFile && !bookPDFURL) {
+      alert('Please provide a PDF URL');
+      return;
+    }
+
+    try {
+      let response;
+
+      // If using file uploads
+      if (useImageFile || usePdfFile) {
+        const formDataObj = new FormData();
+        
+        // Match the @RequestPart names in your controller
+        formDataObj.append('title', bookTitle);
+        formDataObj.append('author', authorName);
+        formDataObj.append('category', bookCategory);
+        
+        if (bookDescription) {
+          formDataObj.append('description', bookDescription);
+        }
+        
+        if (useImageFile && imageFile) {
+          formDataObj.append('image', imageFile);
+        }
+        
+        // Handle PDF - for edit, we need to handle cases where PDF might be optional
+        if (usePdfFile && pdfFile) {
+          formDataObj.append('pdf', pdfFile);
+        } else if (!usePdfFile && bookPDFURL) {
+          // For mixed mode (file for image, URL for PDF), we might need a different endpoint
+          // or handle this case differently based on your backend implementation
+        }
+
+        // Get token from localStorage or wherever you store it
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        
+        const headers = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        response = await fetch(`https://book-management-backend-d481.onrender.com/api/books/${id}/upload`, {
+          method: "PUT",
+          headers: headers,
+          body: formDataObj,
+        });
+      } 
+      // Using URLs (original method)
+      else {
+        const bookObj = {
+          title: bookTitle,
+          author: authorName,
+          image: imageURL,
+          category: bookCategory,
+          description: bookDescription,
+          pdf: bookPDFURL,
+        };
+
+        // Get token from localStorage or wherever you store it
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        
+        const headers = {
+          "Content-type": "application/json",
+        };
+        
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        response = await fetch(`https://book-management-backend-d481.onrender.com/api/books/${id}`, {
+          method: "PUT",
+          headers: headers,
+          body: JSON.stringify(bookObj),
+        });
       }
 
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        return res.json();
-      } else {
-        return {};
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Server error:', errorText);
+        throw new Error(`Failed to update book: ${response.status} ${response.statusText}`);
       }
-    })
-    .then((data) => {
+
+      const data = await response.json();
       alert("Book updated successfully!");
       navigate("/admin/dashboard/manage");
-    })
-    .catch((err) => {
-      console.error("Error updating book:", err.message);
-      alert("Failed to update book");
-    });
-
-
+      
+    } catch (err) {
+      console.error('Update error:', err);
+      alert(`Error updating book: ${err.message}`);
+    }
   };
 
   return (
-    <div className='px-4 my-12'>
-      <h2 className='mb-8 text-3xl font-bold'>Edit Book</h2>
-      <form className="flex lg:w-[1180px] flex-col flex-wrap gap-4" onSubmit={handleUpdate}>
+    <div className="px-4 my-12">
+      <h2 className="mb-8 text-3xl font-bold">Edit Book</h2>
+      <div className="flex lg:w-[1100px] flex-col flex-wrap gap-4">
         {/* First Row */}
-        <div className='flex gap-8'>
-          {/* Book Title */}
-          <div className='lg:w-1/2'>
-            <Label htmlFor="title" value="Book Title" className="mb-2 block" />
-            <TextInput
-              id="title"
-              name="title"
-              type="text"
+        <div className="flex gap-8">
+          <div className="lg:w-1/2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Book Title
+            </label>
+            <input
+              name="bookTitle"
+              value={formData.bookTitle}
+              onChange={handleInputChange}
               placeholder="Book Name"
               required
-              className='w-full'
-              defaultValue={title}
+              type="text"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             />
           </div>
-
-          {/* Author Name */}
-          <div className='lg:w-1/2'>
-            <Label htmlFor="author" value="Author Name" className="mb-2 block" />
-            <TextInput
-              id="author"
-              name="author"
-              type="text"
+          <div className="lg:w-1/2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Author Name
+            </label>
+            <input
+              name="authorName"
+              value={formData.authorName}
+              onChange={handleInputChange}
               placeholder="Author Name"
               required
-              className='w-full'
-              defaultValue={author}
+              type="text"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             />
           </div>
         </div>
 
         {/* Second Row */}
-        <div className='flex gap-8'>
-          {/* Image URL */}
-          <div className='lg:w-1/2'>
-            <Label htmlFor="image" value="Book Image URL" className="mb-2 block" />
-            <TextInput
-              id="image"
-              name="image"
-              type="text"
-              placeholder="Image URL"
-              required
-              className='w-full'
-              defaultValue={image}
-            />
+        <div className="flex gap-8">
+          {/* Image Section */}
+          <div className="lg:w-1/2">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-900">
+                Book Image
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setUseImageFile(!useImageFile);
+                  setImageFile(null);
+                  setFormData(prev => ({ ...prev, imageURL: '' }));
+                }}
+                className="text-xs bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition-colors"
+              >
+                {useImageFile ? "Use URL" : "Upload File"}
+              </button>
+            </div>
+            
+            {useImageFile ? (
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-gray-300 rounded-lg"
+                />
+                {imageFile && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Selected: {imageFile.name}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <input
+                name="imageURL"
+                value={formData.imageURL}
+                onChange={handleInputChange}
+                placeholder="Image URL"
+                type="text"
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              />
+            )}
           </div>
 
-          {/* Category */}
-          <div className='lg:w-1/2'>
-            <Label htmlFor="category" value="Book Category" className="mb-2 block" />
-            <TextInput
-              id="category"
-              name="category"
-              type="text"
-              placeholder="Category"
+          <div className="lg:w-1/2">
+            <label className="block text-sm font-medium text-gray-900 mb-2">
+              Book Category
+            </label>
+            <input
+              placeholder="Enter category (e.g., Fiction)"
               required
-              className='w-full'
-              defaultValue={category}
+              type="text"
+              value={bookCategory}
+              onChange={(e) => setBookCategory(e.target.value)}
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             />
           </div>
         </div>
 
         {/* Description */}
         <div>
-          <Label htmlFor="description" value="Book Description" className="mb-2 block" />
-          <Textarea
-            id="description"
-            name="description"
+          <label className="block text-sm font-medium text-gray-900 mb-2">
+            Book Description
+          </label>
+          <textarea
+            name="bookDescription"
+            value={formData.bookDescription}
+            onChange={handleInputChange}
             placeholder="Book Description"
             rows={4}
-            required
-            className='w-full'
-            defaultValue={description}
+            className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
 
-        {/* PDF URL */}
+        {/* PDF Section */}
         <div>
-          <Label htmlFor="pdf" value="Book PDF Link" className="mb-2 block" />
-          <TextInput
-            id="pdf"
-            name="pdf"
-            type="text"
-            placeholder="Paste Book PDF URL here"
-            required
-            className='w-full'
-            defaultValue={pdf}
-          />
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-900">
+              Book PDF
+            </label>
+            <button
+              type="button"
+              onClick={() => {
+                setUsePdfFile(!usePdfFile);
+                setPdfFile(null);
+                setFormData(prev => ({ ...prev, bookPDFURL: '' }));
+              }}
+              className="text-xs bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors"
+            >
+              {usePdfFile ? "Use URL" : "Upload File"}
+            </button>
+          </div>
+          
+          {usePdfFile ? (
+            <div>
+              <input
+                type="file"
+                accept=".pdf,application/pdf"
+                onChange={handlePdfFileChange}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100 border border-gray-300 rounded-lg"
+              />
+              {pdfFile && (
+                <p className="mt-2 text-sm text-gray-600">
+                  Selected: {pdfFile.name} ({(pdfFile.size / 1024 / 1024).toFixed(2)} MB)
+                </p>
+              )}
+            </div>
+          ) : (
+            <input
+              name="bookPDFURL"
+              value={formData.bookPDFURL}
+              onChange={handleInputChange}
+              placeholder="Paste Book PDF URL here"
+              type="text"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+            />
+          )}
         </div>
 
         {/* Submit Button */}
-        <Button type="submit" className='mt-5'>
+        <button
+          type="submit"
+          onClick={handleSubmit}
+          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mt-5 transition-colors"
+        >
           Update Book
-        </Button>
-      </form>
+        </button>
+      </div>
     </div>
   );
 };
