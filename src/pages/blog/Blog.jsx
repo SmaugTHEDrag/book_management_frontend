@@ -4,7 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { Spinner } from "flowbite-react";
 import { AuthContext } from "../../contexts/AuthProvider";
 import Chatbot from "../shared/ChatBot";
-import { AiOutlineHeart, AiFillHeart, AiOutlineMessage, AiOutlineEdit, AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
+import { 
+  AiOutlineHeart, 
+  AiFillHeart, 
+  AiOutlineMessage, 
+  AiOutlineEdit, 
+  AiOutlineDelete, 
+  AiOutlinePlus,
+  AiOutlineUpload,
+  AiOutlineLink,
+  AiOutlineClose
+} from "react-icons/ai";
 
 const Comment = ({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, currentUser }) => {
   const { user } = useContext(AuthContext);
@@ -230,14 +240,155 @@ const Comment = ({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, cur
   );
 };
 
+const ImageUploadSection = ({ imageType, setImageType, imageFile, setImageFile, imageURL, setImageURL, previewImage, setPreviewImage }) => {
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setImageFile(file);
+    
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewImage(null);
+    }
+  };
+
+  const handleURLChange = (e) => {
+    const url = e.target.value;
+    setImageURL(url);
+    setPreviewImage(url);
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImageURL("");
+    setPreviewImage(null);
+    if (document.getElementById('fileInput')) {
+      document.getElementById('fileInput').value = '';
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-semibold text-gray-700">Cover Image</label>
+        {(previewImage || imageFile || imageURL) && (
+          <button
+            type="button"
+            onClick={clearImage}
+            className="flex items-center gap-1 px-2 py-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+          >
+            <AiOutlineClose className="w-3 h-3" />
+            Clear
+          </button>
+        )}
+      </div>
+      
+      {/* Image Type Selection */}
+      <div className="flex gap-3 p-3 bg-gray-50 rounded-lg">
+        <button
+          type="button"
+          onClick={() => {
+            setImageType('upload');
+            setImageURL("");
+            setPreviewImage(imageFile ? previewImage : null);
+          }}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            imageType === 'upload' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+          }`}
+        >
+          <AiOutlineUpload className="w-4 h-4" />
+          Upload File
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setImageType('url');
+            setImageFile(null);
+            if (document.getElementById('fileInput')) {
+              document.getElementById('fileInput').value = '';
+            }
+            setPreviewImage(imageURL || null);
+          }}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            imageType === 'url' 
+              ? 'bg-blue-600 text-white shadow-md' 
+              : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+          }`}
+        >
+          <AiOutlineLink className="w-4 h-4" />
+          Use URL
+        </button>
+      </div>
+
+      {/* Upload or URL Input */}
+      {imageType === 'upload' ? (
+        <div className="space-y-2">
+          <input
+            id="fileInput"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="w-full border-2 border-dashed border-gray-300 focus:border-blue-500 px-4 py-6 rounded-xl transition-all file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 file:font-medium hover:file:bg-blue-100"
+          />
+          <p className="text-xs text-gray-500">Supports: JPG, PNG, GIF (Max: 10MB)</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <input
+            type="url"
+            value={imageURL}
+            onChange={handleURLChange}
+            placeholder="https://example.com/image.jpg"
+            className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl transition-all"
+          />
+          <p className="text-xs text-gray-500">Enter a direct link to an image</p>
+        </div>
+      )}
+
+      {/* Preview */}
+      {previewImage && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-700">Preview:</p>
+          <div className="relative w-full h-48 bg-gray-100 rounded-xl overflow-hidden">
+            <img 
+              src={previewImage} 
+              alt="Preview" 
+              className="w-full h-full object-cover"
+              onError={() => {
+                setPreviewImage(null);
+                if (imageType === 'url') {
+                  setImageURL("");
+                }
+              }}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Blog = () => {
   const { user, loading } = useContext(AuthContext);
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
   const [loadingBlogs, setLoadingBlogs] = useState(true);
   const [expandedComments, setExpandedComments] = useState({});
-  const [creating, setCreating] = useState({ title: "", content: "", image: "" });
+  const [creating, setCreating] = useState({ title: "", content: "" });
   const [editingMap, setEditingMap] = useState({});
+  
+  // Image handling states
+  const [imageType, setImageType] = useState('url'); // 'upload' or 'url'
+  const [imageFile, setImageFile] = useState(null);
+  const [imageURL, setImageURL] = useState("");
+  const [previewImage, setPreviewImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const token = useMemo(() => localStorage.getItem("token"), []);
   const authHeaders = useMemo(
@@ -377,20 +528,59 @@ const Blog = () => {
 
   const handleCreate = async () => {
     if (!creating.title.trim() || !creating.content.trim()) return;
+    
+    setUploading(true);
     try {
-      await axios.post(
-        "https://book-management-backend-d481.onrender.com/api/blogs",
-        {
-          title: creating.title.trim(),
-          content: creating.content.trim(),
-          image: creating.image.trim() || undefined,
-        },
-        { headers: authHeaders }
-      );
-      setCreating({ title: "", content: "", image: "" });
+      let blogData;
+      
+      if (imageType === 'upload' && imageFile) {
+        // Use multipart/form-data for file upload
+        const formData = new FormData();
+        formData.append('title', creating.title.trim());
+        formData.append('content', creating.content.trim());
+        formData.append('image', imageFile);
+
+        const response = await axios.post(
+          "https://book-management-backend-d481.onrender.com/api/blogs/upload",
+          formData,
+          {
+            headers: {
+              ...authHeaders,
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+        blogData = response.data;
+      } else {
+        // Use regular JSON for URL-based images
+        const response = await axios.post(
+          "https://book-management-backend-d481.onrender.com/api/blogs",
+          {
+            title: creating.title.trim(),
+            content: creating.content.trim(),
+            image: imageType === 'url' && imageURL.trim() ? imageURL.trim() : undefined,
+          },
+          { headers: authHeaders }
+        );
+        blogData = response.data;
+      }
+
+      // Reset form
+      setCreating({ title: "", content: "" });
+      setImageFile(null);
+      setImageURL("");
+      setPreviewImage(null);
+      setImageType('url');
+      if (document.getElementById('fileInput')) {
+        document.getElementById('fileInput').value = '';
+      }
+      
       fetchBlogs();
     } catch (err) {
       console.error(err);
+      alert("Failed to create blog post. Please try again.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -506,23 +696,31 @@ const Blog = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Cover Image (Optional)</label>
-                  <input
-                    value={creating.image}
-                    onChange={(e) => setCreating((p) => ({ ...p, image: e.target.value }))}
-                    placeholder="https://example.com/image.jpg"
-                    className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl transition-all"
-                  />
-                </div>
+                <ImageUploadSection
+                  imageType={imageType}
+                  setImageType={setImageType}
+                  imageFile={imageFile}
+                  setImageFile={setImageFile}
+                  imageURL={imageURL}
+                  setImageURL={setImageURL}
+                  previewImage={previewImage}
+                  setPreviewImage={setPreviewImage}
+                />
                 
                 <div className="flex justify-end">
                   <button
                     onClick={handleCreate}
-                    disabled={!creating.title.trim() || !creating.content.trim()}
-                    className="bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 text-white px-8 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 disabled:scale-100 shadow-lg disabled:shadow-none"
+                    disabled={!creating.title.trim() || !creating.content.trim() || uploading}
+                    className="bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 text-white px-8 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 disabled:scale-100 shadow-lg disabled:shadow-none flex items-center gap-2"
                   >
-                    Publish Story
+                    {uploading ? (
+                      <>
+                        <Spinner className="w-4 h-4" />
+                        Publishing...
+                      </>
+                    ) : (
+                      "Publish Story"
+                    )}
                   </button>
                 </div>
               </div>
@@ -763,9 +961,9 @@ const Blog = () => {
           </div>
         )}
       </div>
-    <div className="fixed bottom-6 right-6 z-50">
-      <Chatbot />
-    </div>
+      <div className="fixed bottom-6 right-6 z-50">
+        <Chatbot />
+      </div>
     </div>
   );
 };
