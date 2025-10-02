@@ -24,9 +24,9 @@ const About = () => {
                 <div className="relative group">
                   <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg blur-xl opacity-50 group-hover:opacity-75 transition-opacity duration-300"></div>
                   <img
-                    src="https://res.cloudinary.com/duipncbaq/image/upload/v1759131951/-OTjnfF3_mdhfog.jpg"
+                    src="https://res.cloudinary.com/duipncbaq/image/upload/v1759418163/553741918_1210449781135106_4641480923168653771_n_g143m0.png"
                     alt="Pham Thai Nguyen"
-                    className="relative w-36 h-48 rounded-lg object-cover border-4 border-white shadow-xl group-hover:scale-105 transition-transform duration-300"
+                    className="relative w-32 h-32 rounded-full object-cover border-4 border-white shadow-xl group-hover:scale-105 transition-transform duration-300"
                   />
                   <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-700 border-3 border-white rounded-full flex items-center justify-center">
                     <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
