@@ -128,7 +128,7 @@ cloudinary.api_secret=your_cloudinary_api_secret
 mvn spring-boot:run
 
 # 🎉 Backend running at http://localhost:8080
-# 📖 Swagger UI: http://localhost:8080/swagger-ui/index.html
+# 📖 Swagger UI: https://book-management-backend-d481.onrender.com/swagger-ui/index.html
 ```
 
 ### 🎨 Frontend Setup

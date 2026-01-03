@@ -1,6 +1,6 @@
 import { Table, Pagination } from 'flowbite-react';
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const ManageBooks = () => {
   const [booksPage, setBooksPage] = useState({
@@ -8,11 +8,12 @@ const ManageBooks = () => {
     totalPages: 1,
     number: 0,
   });
-  const [editingBookId, setEditingBookId] = useState(null); // nếu muốn edit sau này
+  const [editingBookId, setEditingBookId] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const pageSize = 5;
   const token = localStorage.getItem("token");
+  const location = useLocation(); // Để detect khi navigate back
 
   // fetch books theo trang
   const fetchBooks = async (page = 0) => {
@@ -20,7 +21,7 @@ const ManageBooks = () => {
     try {
       const res = await fetch(`https://book-management-backend-d481.onrender.com/api/books?page=${page}&size=${pageSize}`, {
         headers: {
-          "Authorization": `Bearer ${token}`, // nếu backend có bảo vệ
+          "Authorization": `Bearer ${token}`,
         },
       });
       if (!res.ok) throw new Error("Failed to fetch books");
@@ -34,9 +35,10 @@ const ManageBooks = () => {
     }
   };
 
+  // Thêm location.key để refresh khi navigate back từ edit page
   useEffect(() => {
     fetchBooks(currentPage);
-  }, [currentPage, token]); // Thêm token vào dependency
+  }, [currentPage, token, location.key]); // location.key thay đổi mỗi khi navigate
 
   // delete a book
   const handleDelete = async (id) => {
@@ -58,10 +60,8 @@ const ManageBooks = () => {
       const remainingItemsOnCurrentPage = content.length - 1;
       
       if (remainingItemsOnCurrentPage === 0 && currentPage > 0) {
-        // Nếu không còn item nào trong trang hiện tại và không phải trang đầu tiên
         setCurrentPage(currentPage - 1);
       } else {
-        // Refresh trang hiện tại
         fetchBooks(currentPage);
       }
     } catch (err) {
@@ -116,7 +116,7 @@ const ManageBooks = () => {
                       src={book.image} 
                       alt={book.title}
                       onError={(e) => {
-                        e.target.src = '/placeholder-book.png'; // fallback image
+                        e.target.src = '/placeholder-book.png';
                       }}
                     />
                   </Table.Cell>
@@ -149,13 +149,13 @@ const ManageBooks = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-center text-center mt-8">
               <Pagination
-                currentPage={currentPage + 1} // Hiển thị page số từ 1
+                currentPage={currentPage + 1}
                 totalPages={totalPages}
                 layout="pagination"
                 nextLabel="Next"
                 previousLabel="Prev"
                 showIcons
-                onPageChange={(page) => setCurrentPage(page - 1)} // Chuyển về 0-based index
+                onPageChange={(page) => setCurrentPage(page - 1)}
               />
             </div>
           )}

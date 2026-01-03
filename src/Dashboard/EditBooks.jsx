@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { useLoaderData, useParams, useLocation, useNavigate } from 'react-router-dom';
+import { useLoaderData, useParams, useNavigate } from 'react-router-dom';
 
 const EditBooks = () => {
   const { id } = useParams();
   const { title, author, image, category, description, pdf } = useLoaderData();
-  const location = useLocation();
   const navigate = useNavigate();
-  const from = location.state?.from?.pathname || '/admin/dashboard/book';
 
   // State for toggle between URL and file upload
   const [useImageFile, setUseImageFile] = useState(false);
@@ -14,6 +12,7 @@ const EditBooks = () => {
   const [imageFile, setImageFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [bookCategory, setBookCategory] = useState(category || "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form data state - matching UploadBook structure
   const [formData, setFormData] = useState({
@@ -52,6 +51,8 @@ const EditBooks = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     
+    if (isSubmitting) return; // Prevent double submission
+    
     const { bookTitle, authorName, bookDescription, imageURL, bookPDFURL } = formData;
 
     if (!bookTitle || !authorName || !bookCategory) {
@@ -69,6 +70,8 @@ const EditBooks = () => {
       alert('Please provide a PDF URL');
       return;
     }
+
+    setIsSubmitting(true);
 
     try {
       let response;
@@ -115,13 +118,15 @@ const EditBooks = () => {
       // Using URLs (original method)
       else {
         const bookObj = {
-          title: bookTitle,
-          author: authorName,
-          image: imageURL,
-          category: bookCategory,
-          description: bookDescription,
-          pdf: bookPDFURL,
+          title: bookTitle.trim(),
+          author: authorName.trim(),
+          image: imageURL.trim() || null,  // Gửi null nếu empty
+          category: bookCategory.trim(),
+          description: bookDescription.trim() || null,  // Gửi null nếu empty
+          pdf: bookPDFURL.trim() || null,  // Gửi null nếu empty
         };
+
+        console.log('Sending book data:', bookObj); // Debug log
 
         // Get token from localStorage or wherever you store it
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -144,16 +149,28 @@ const EditBooks = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('Server error:', errorText);
+        console.error('Response status:', response.status);
         throw new Error(`Failed to update book: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+      console.log('Update successful:', data); // Debug log
       alert("Book updated successfully!");
-      navigate("/admin/dashboard/manage");
+      
+      // Force navigate with replace and state to trigger refresh
+      navigate("/admin/dashboard/manage", { 
+        replace: true,
+        state: { refresh: Date.now() } // Add timestamp to force refresh
+      });
+      
+      // Alternative: Use window.location for hard refresh
+      // window.location.href = "/admin/dashboard/manage";
       
     } catch (err) {
       console.error('Update error:', err);
       alert(`Error updating book: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -319,9 +336,10 @@ const EditBooks = () => {
         <button
           type="submit"
           onClick={handleSubmit}
-          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mt-5 transition-colors"
+          disabled={isSubmitting}
+          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mt-5 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
         >
-          Update Book
+          {isSubmitting ? 'Updating...' : 'Update Book'}
         </button>
       </div>
     </div>

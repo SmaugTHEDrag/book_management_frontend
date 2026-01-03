@@ -41,6 +41,7 @@ export default function Login() {
             login: data.login,
             role: data.role,
             };
+            localStorage.setItem("username", data.login);
             localStorage.setItem("user", JSON.stringify(user));
 
             // Cập nhật context
@@ -53,8 +54,6 @@ export default function Login() {
             setErrorMessage("Email or password is invalid.");
         }
     };
-
-
 
     const togglePasswordVisibility = () => {
         setShowPassword(prev => !prev);

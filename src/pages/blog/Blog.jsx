@@ -500,11 +500,11 @@ const Blog = () => {
     }
   };
 
-  const editComment = async (commentId, content) => {
+  const editComment = async (commentId, content, blogId) => {
     try {
       await axios.put(
         `https://book-management-backend-d481.onrender.com/api/blogs/comments/${commentId}`,
-        { content },
+        { blogId, content },
         { headers: authHeaders }
       );
       fetchBlogs();
@@ -910,7 +910,7 @@ const Blog = () => {
                             comment={comment}
                             onReply={(parentId, content) => addComment(post.id, content, parentId)}
                             onDelete={deleteComment}
-                            onEdit={editComment}
+                            onEdit={(commentId, content) => editComment(commentId, content, post.id)}
                             blogOwner={post.username}
                             currentUser={user}
                           />
