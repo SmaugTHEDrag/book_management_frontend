@@ -16,12 +16,13 @@ import {
   AiOutlineClose
 } from "react-icons/ai";
 
-const Comment = ({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, currentUser }) => {
+const Comment = ({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, currentUser, isReplying = false }) => {
   const { user } = useContext(AuthContext);
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
+  const prevIsReplyingRef = React.useRef(isReplying);
 
   // Determine if current user can delete this comment
   const canDeleteComment = useMemo(() => {
@@ -50,12 +51,23 @@ const Comment = ({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, cur
   }, [user, comment.username]);
 
   const handleReplySubmit = () => {
-    if (replyContent.trim()) {
+    if (replyContent.trim() && !isReplying) {
       onReply(comment.id, replyContent.trim());
+      // Keep input visible to show loading state on button
+    }
+  };
+  
+  // Clear input when reply loading completes (API call finished)
+  useEffect(() => {
+    const wasReplying = prevIsReplyingRef.current;
+    prevIsReplyingRef.current = isReplying;
+    
+    // Only clear/hide if we just finished loading (was true, now false)
+    if (wasReplying && !isReplying && showReplyInput) {
       setReplyContent("");
       setShowReplyInput(false);
     }
-  };
+  }, [isReplying, showReplyInput]);
 
   const handleReplyCancel = () => {
     setReplyContent("");
@@ -195,9 +207,10 @@ const Comment = ({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, cur
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               placeholder={`Reply to ${comment.username}...`}
-              className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl min-h-[80px] transition-all resize-none text-sm"
+              disabled={isReplying}
+              className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl min-h-[80px] transition-all resize-none text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
               onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !isReplying) {
                   handleReplySubmit();
                 }
               }}
@@ -213,10 +226,17 @@ const Comment = ({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, cur
                 </button>
                 <button
                   onClick={handleReplySubmit}
-                  disabled={!replyContent.trim()}
-                  className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
+                  disabled={!replyContent.trim() || isReplying}
+                  className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium flex items-center gap-2"
                 >
-                  Reply
+                  {isReplying ? (
+                    <>
+                      <Spinner className="w-4 h-4" />
+                      Replying...
+                    </>
+                  ) : (
+                    "Reply"
+                  )}
                 </button>
               </div>
             </div>
@@ -234,6 +254,7 @@ const Comment = ({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, cur
           depth={depth + 1}
           blogOwner={blogOwner}
           currentUser={currentUser}
+          isReplying={isReplying}
         />
       ))}
     </div>
@@ -389,6 +410,7 @@ const Blog = () => {
   const [imageURL, setImageURL] = useState("");
   const [previewImage, setPreviewImage] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [loadingComment, setLoadingComment] = useState(null); // null, blogId for new comment, or commentId for reply
 
   const token = useMemo(() => localStorage.getItem("token"), []);
   const authHeaders = useMemo(
@@ -484,7 +506,9 @@ const Blog = () => {
   };
 
   const addComment = async (blogId, content, parentId = null) => {
+    const loadingKey = parentId || blogId;
     try {
+      setLoadingComment(loadingKey);
       await axios.post(
         `https://book-management-backend-d481.onrender.com/api/blogs/${blogId}/comments`,
         {
@@ -497,6 +521,13 @@ const Blog = () => {
       fetchBlogs();
     } catch (err) {
       console.error(err);
+      if (err.response?.status === 400) {
+        alert("Your comment contains inappropriate content. Please revise and try again.");
+      } else {
+        alert("Failed to add comment. Please try again.");
+      }
+    } finally {
+      setLoadingComment(null);
     }
   };
 
@@ -578,7 +609,11 @@ const Blog = () => {
       fetchBlogs();
     } catch (err) {
       console.error(err);
-      alert("Failed to create blog post. Please try again.");
+      if (err.response?.status === 400) {
+        alert("Your blog contains inappropriate in title or content. Please revise and try again.");
+      } else {
+        alert("Failed to create blog post. Please try again.");
+      }
     } finally {
       setUploading(false);
     }
@@ -913,6 +948,7 @@ const Blog = () => {
                             onEdit={(commentId, content) => editComment(commentId, content, post.id)}
                             blogOwner={post.username}
                             currentUser={user}
+                            isReplying={loadingComment === comment.id}
                           />
                         ))}
                       </div>
@@ -925,17 +961,26 @@ const Blog = () => {
                     
                     {isLoggedIn && (
                       <div className="mt-4">
-                        <input
-                          type="text"
-                          placeholder="Add a thoughtful comment..."
-                          className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl transition-all"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && e.target.value.trim()) {
-                              addComment(post.id, e.target.value.trim());
-                              e.target.value = "";
-                            }
-                          }}
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Add a thoughtful comment..."
+                            disabled={loadingComment === post.id}
+                            className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl transition-all disabled:bg-gray-100 disabled:cursor-not-allowed pr-24"
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" && e.target.value.trim() && loadingComment !== post.id) {
+                                addComment(post.id, e.target.value.trim());
+                                e.target.value = "";
+                              }
+                            }}
+                          />
+                          {loadingComment === post.id && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 text-blue-600">
+                              <Spinner className="w-4 h-4" />
+                              <span className="text-xs">Posting...</span>
+                            </div>
+                          )}
+                        </div>
                         <p className="text-xs text-gray-500 mt-2">Press Enter to post your comment</p>
                       </div>
                     )}

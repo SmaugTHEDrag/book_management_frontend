@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, memo, useMemo } from "react";
+import React, { useContext, useEffect, useState, memo, useMemo, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../../contexts/AuthProvider";
@@ -6,12 +6,13 @@ import { AiOutlineHeart, AiFillHeart, AiOutlineMessage, AiOutlineLeft, AiOutline
 import { Spinner } from "flowbite-react";
 import Chatbot from "../shared/ChatBot";
 
-const Comment = memo(({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, currentUser }) => {
+const Comment = memo(({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner, currentUser, isReplying = false }) => {
   const { user } = useContext(AuthContext);
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
+  const prevIsReplyingRef = useRef(isReplying);
 
   // Determine if current user can delete this comment
   const canDeleteComment = useMemo(() => {
@@ -40,12 +41,23 @@ const Comment = memo(({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner
   }, [user, comment.username]);
 
   const handleReplySubmit = () => {
-    if (replyContent.trim()) {
+    if (replyContent.trim() && !isReplying) {
       onReply(comment.id, replyContent.trim());
+      // Keep input visible to show loading state on button
+    }
+  };
+  
+  // Clear input when reply loading completes (API call finished)
+  useEffect(() => {
+    const wasReplying = prevIsReplyingRef.current;
+    prevIsReplyingRef.current = isReplying;
+    
+    // Only clear/hide if we just finished loading (was true, now false)
+    if (wasReplying && !isReplying && showReplyInput) {
       setReplyContent("");
       setShowReplyInput(false);
     }
-  };
+  }, [isReplying, showReplyInput]);
 
   const handleReplyCancel = () => {
     setReplyContent("");
@@ -191,9 +203,10 @@ const Comment = memo(({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               placeholder={`Reply to ${comment.username}...`}
-              className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl min-h-[80px] transition-all resize-none text-sm"
+              disabled={isReplying}
+              className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl min-h-[80px] transition-all resize-none text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
               onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+                if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && !isReplying) {
                   handleReplySubmit();
                 }
               }}
@@ -209,10 +222,17 @@ const Comment = memo(({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner
                 </button>
                 <button
                   onClick={handleReplySubmit}
-                  disabled={!replyContent.trim()}
-                  className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
+                  disabled={!replyContent.trim() || isReplying}
+                  className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium flex items-center gap-2"
                 >
-                  Reply
+                  {isReplying ? (
+                    <>
+                      <Spinner className="w-4 h-4" />
+                      Replying...
+                    </>
+                  ) : (
+                    "Reply"
+                  )}
                 </button>
               </div>
             </div>
@@ -230,6 +250,7 @@ const Comment = memo(({ comment, onReply, onDelete, onEdit, depth = 0, blogOwner
           depth={depth + 1}
           blogOwner={blogOwner}
           currentUser={currentUser}
+          isReplying={isReplying}
         />
       ))}
     </div>
@@ -244,6 +265,7 @@ const BlogDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editing, setEditing] = useState(null);
+  const [loadingComment, setLoadingComment] = useState(null); // null, 'new' for new comment, or commentId for reply
 
   const token = localStorage.getItem("token");
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
@@ -316,7 +338,9 @@ const BlogDetail = () => {
   };
 
   const addComment = async (content, parentId = null) => {
+    const loadingKey = parentId || 'new';
     try {
+      setLoadingComment(loadingKey);
       await axios.post(
         `https://book-management-backend-d481.onrender.com/api/blogs/${id}/comments`,
         {
@@ -329,6 +353,13 @@ const BlogDetail = () => {
       fetchBlogDetail();
     } catch (err) {
       console.error(err);
+      if (err.response?.status === 400) {
+        alert("Your comment contains inappropriate content. Please revise and try again.");
+      } else {
+        alert("Failed to add comment. Please try again.");
+      }
+    } finally {
+      setLoadingComment(null);
     }
   };
 
@@ -590,17 +621,26 @@ const BlogDetail = () => {
               {/* Add Comment */}
               {isLoggedIn && (
                 <div className="mb-8">
-                  <input
-                    type="text"
-                    placeholder="Share your thoughts..."
-                    className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl transition-all"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && e.target.value.trim()) {
-                        addComment(e.target.value.trim());
-                        e.target.value = "";
-                      }
-                    }}
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Share your thoughts..."
+                      disabled={loadingComment === 'new'}
+                      className="w-full border-2 border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 px-4 py-3 rounded-xl transition-all disabled:bg-gray-100 disabled:cursor-not-allowed pr-24"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && e.target.value.trim() && loadingComment !== 'new') {
+                          addComment(e.target.value.trim());
+                          e.target.value = "";
+                        }
+                      }}
+                    />
+                    {loadingComment === 'new' && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 text-blue-600">
+                        <Spinner className="w-4 h-4" />
+                        <span className="text-xs">Posting...</span>
+                      </div>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 mt-2">Press Enter to post your comment</p>
                 </div>
               )}
@@ -617,6 +657,7 @@ const BlogDetail = () => {
                       onEdit={editComment}
                       blogOwner={blog.username}
                       currentUser={user}
+                      isReplying={loadingComment === comment.id}
                     />
                   ))}
                 </div>
