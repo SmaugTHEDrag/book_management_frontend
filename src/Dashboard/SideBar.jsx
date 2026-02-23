@@ -62,7 +62,7 @@ const SideBar = () => {
           {user?.role === "ADMIN" && (
           <Sidebar.ItemGroup>
             {/* Mấy cái link "#" thì vẫn giữ href, hoặc đổi thành button nếu có xử lý */}
-            <Sidebar.Item href="https://https://book-management-backend-eghi.onrender.com/swagger-ui/index.html" target="_blank" icon={HiViewBoards}>
+            <Sidebar.Item href="https://book-management-backend-eghi.onrender.com/swagger-ui/index.html" target="_blank" icon={HiViewBoards}>
               Documentation
             </Sidebar.Item>
           </Sidebar.ItemGroup>)}

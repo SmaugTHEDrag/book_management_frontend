@@ -29,7 +29,7 @@ export default function Library() {
           ? encodeURIComponent(selectedCategories.join(','))
           : '';
 
-        const url = `https://https://book-management-backend-eghi.onrender.com/api/books?search=${encodeURIComponent(
+        const url = `https://book-management-backend-eghi.onrender.com/api/books?search=${encodeURIComponent(
           searchQuery
         )}&categorySearch=${categoryParam}&page=${currentPage}&size=${booksPerPage}`;
 
@@ -62,7 +62,7 @@ export default function Library() {
 
       setAddingFavoriteId(bookId);
 
-      const res = await fetch('https://https://book-management-backend-eghi.onrender.com/api/favorites', {
+      const res = await fetch('https://book-management-backend-eghi.onrender.com/api/favorites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ bookId }),

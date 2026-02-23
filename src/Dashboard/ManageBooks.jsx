@@ -19,7 +19,7 @@ const ManageBooks = () => {
   const fetchBooks = async (page = 0) => {
     setLoading(true);
     try {
-      const res = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/books?page=${page}&size=${pageSize}`, {
+      const res = await fetch(`https://book-management-backend-eghi.onrender.com/api/books?page=${page}&size=${pageSize}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -47,7 +47,7 @@ const ManageBooks = () => {
     }
 
     try {
-      const res = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/books/${id}`, {
+      const res = await fetch(`https://book-management-backend-eghi.onrender.com/api/books/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

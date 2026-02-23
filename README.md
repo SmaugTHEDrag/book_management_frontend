@@ -12,7 +12,7 @@
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 **[🌐 Live Demo](https://ptn-book-storage.netlify.app/)** •
-**[📖 API Docs](https://https://book-management-backend-eghi.onrender.com/swagger-ui/index.html)** •
+**[📖 API Docs](https://book-management-backend-eghi.onrender.com/swagger-ui/index.html)** •
 **[🎥 Demo Video](https://www.youtube.com/watch?v=uis-1R07yUM)**
 
 </div>
@@ -128,7 +128,7 @@ cloudinary.api_secret=your_cloudinary_api_secret
 mvn spring-boot:run
 
 # 🎉 Backend running at http://localhost:8080
-# 📖 Swagger UI: https://https://book-management-backend-eghi.onrender.com/swagger-ui/index.html
+# 📖 Swagger UI: https://book-management-backend-eghi.onrender.com/swagger-ui/index.html
 ```
 
 ### 🎨 Frontend Setup
@@ -154,8 +154,8 @@ npm run dev
 
 ### 🌐 **Live Application**
 [![Frontend](https://img.shields.io/badge/Frontend-Netlify-00C7B7?style=for-the-badge&logo=netlify)](https://ptn-book-storage.netlify.app/)
-[![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)](https://https://book-management-backend-eghi.onrender.com)
-[![API Docs](https://img.shields.io/badge/API%20Docs-Swagger-85EA2D?style=for-the-badge&logo=swagger)](https://https://book-management-backend-eghi.onrender.com/swagger-ui/index.html)
+[![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)](https://book-management-backend-eghi.onrender.com)
+[![API Docs](https://img.shields.io/badge/API%20Docs-Swagger-85EA2D?style=for-the-badge&logo=swagger)](https://book-management-backend-eghi.onrender.com/swagger-ui/index.html)
 
 
 ### 🎬 **Project Walkthrough**

@@ -19,7 +19,7 @@ const ManageUsers = () => {
   const fetchUsers = async (page = 0) => {
     setLoading(true);
     try {
-      const res = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/users?page=${page}&size=${pageSize}`, {
+      const res = await fetch(`https://book-management-backend-eghi.onrender.com/api/users?page=${page}&size=${pageSize}`, {
         headers: {
           "Authorization": `Bearer ${token}`,
         },
@@ -45,7 +45,7 @@ const ManageUsers = () => {
     }
 
     try {
-      const res = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/users/${id}`, {
+      const res = await fetch(`https://book-management-backend-eghi.onrender.com/api/users/${id}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -77,7 +77,7 @@ const ManageUsers = () => {
 
   const handleUpdateRole = async () => {
     try {
-      const res = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/users/${editingUserId}/role`, {
+      const res = await fetch(`https://book-management-backend-eghi.onrender.com/api/users/${editingUserId}/role`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

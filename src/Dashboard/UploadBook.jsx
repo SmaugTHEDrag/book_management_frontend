@@ -98,7 +98,7 @@ const UploadBook = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        response = await fetch("https://https://book-management-backend-eghi.onrender.com/api/books/upload", {
+        response = await fetch("https://book-management-backend-eghi.onrender.com/api/books/upload", {
           method: "POST",
           headers: headers,
           body: formDataObj,
@@ -126,7 +126,7 @@ const UploadBook = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        response = await fetch("https://https://book-management-backend-eghi.onrender.com/api/books", {
+        response = await fetch("https://book-management-backend-eghi.onrender.com/api/books", {
           method: "POST",
           headers: headers,
           body: JSON.stringify(bookObj),

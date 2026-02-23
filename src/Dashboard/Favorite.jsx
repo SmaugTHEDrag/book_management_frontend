@@ -16,7 +16,7 @@ const Favorite = () => {
     }
 
     try {
-      const res = await fetch("https://https://book-management-backend-eghi.onrender.com/api/favorites", {
+      const res = await fetch("https://book-management-backend-eghi.onrender.com/api/favorites", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -42,7 +42,7 @@ const Favorite = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/favorites/${bookId}`, {
+      const res = await fetch(`https://book-management-backend-eghi.onrender.com/api/favorites/${bookId}`, {
         method: "DELETE",
         headers: {
           "Authorization": `Bearer ${token}`,

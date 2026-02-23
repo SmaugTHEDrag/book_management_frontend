@@ -20,7 +20,7 @@ export default function Login() {
         const password = form.password.value;
 
         try {
-            const response = await fetch("https://https://book-management-backend-eghi.onrender.com/api/login", {
+            const response = await fetch("https://book-management-backend-eghi.onrender.com/api/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ login, password }),

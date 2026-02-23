@@ -84,7 +84,7 @@ const Signup = () => {
     }
 
     try {
-      const res = await fetch("https://https://book-management-backend-eghi.onrender.com/api/register", {
+      const res = await fetch("https://book-management-backend-eghi.onrender.com/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
