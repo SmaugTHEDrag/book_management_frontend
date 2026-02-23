@@ -14,7 +14,7 @@
     "axios": "^1.11.0",
     "epubjs": "^0.3.93",
     "firebase": "^10.7.1",
-    "flowbite-react": "^0.7.5",
+    "flowbite-react": "^0.6.4",
     "localforage": "^1.10.0",
     "lucide-react": "^0.541.0",
     "match-sorter": "^6.3.1",
