@@ -24,7 +24,7 @@ const SingleBook = () => {
 
   const fetchBookData = async () => {
     try {
-      const res = await fetch(`https://book-management-backend-d481.onrender.com/api/books/${id}`);
+      const res = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/books/${id}`);
       if (!res.ok) throw new Error('Failed to fetch book');
       const data = await res.json();
       setBook(data);
@@ -50,7 +50,7 @@ const SingleBook = () => {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          const likeRes = await fetch(`https://book-management-backend-d481.onrender.com/api/favorites/${id}/has`, {
+          const likeRes = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/favorites/${id}/has`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (likeRes.ok) setHasFavorited(await likeRes.json());
@@ -71,8 +71,8 @@ const SingleBook = () => {
       setAddingFavorite(true);
       const method = hasFavorited ? 'DELETE' : 'POST';
       const url = hasFavorited 
-        ? `https://book-management-backend-d481.onrender.com/api/favorites/${id}`
-        : 'https://book-management-backend-d481.onrender.com/api/favorites';
+        ? `https://https://book-management-backend-eghi.onrender.com/api/favorites/${id}`
+        : 'https://https://book-management-backend-eghi.onrender.com/api/favorites';
       
       await fetch(url, {
         method,
@@ -104,8 +104,8 @@ const SingleBook = () => {
       setSubmittingReview(true);
       const method = userReview ? 'PUT' : 'POST';
       const url = userReview 
-        ? `https://book-management-backend-d481.onrender.com/api/reviews/${userReview.id}`
-        : 'https://book-management-backend-d481.onrender.com/api/reviews';
+        ? `https://https://book-management-backend-eghi.onrender.com/api/reviews/${userReview.id}`
+        : 'https://https://book-management-backend-eghi.onrender.com/api/reviews';
 
       const res = await fetch(url, {
         method,
@@ -154,7 +154,7 @@ const SingleBook = () => {
 
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`https://book-management-backend-d481.onrender.com/api/reviews/${userReview.id}`, {
+      const res = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/reviews/${userReview.id}`, {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -18,7 +18,7 @@ export default function BookReader() {
   const [bookTitle, setBookTitle] = useState('');
 
   useEffect(() => {
-    fetch(`https://book-management-backend-d481.onrender.com/api/books/${id}`)
+    fetch(`https://https://book-management-backend-eghi.onrender.com/api/books/${id}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch book data');
         return res.json();

@@ -109,7 +109,7 @@ const EditBooks = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        response = await fetch(`https://book-management-backend-d481.onrender.com/api/books/${id}/upload`, {
+        response = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/books/${id}/upload`, {
           method: "PUT",
           headers: headers,
           body: formDataObj,
@@ -139,7 +139,7 @@ const EditBooks = () => {
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        response = await fetch(`https://book-management-backend-d481.onrender.com/api/books/${id}`, {
+        response = await fetch(`https://https://book-management-backend-eghi.onrender.com/api/books/${id}`, {
           method: "PUT",
           headers: headers,
           body: JSON.stringify(bookObj),

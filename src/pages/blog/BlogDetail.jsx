@@ -291,7 +291,7 @@ const BlogDetail = () => {
   const fetchBlogDetail = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`https://book-management-backend-d481.onrender.com/api/blogs/${id}`, {
+      const res = await axios.get(`https://https://book-management-backend-eghi.onrender.com/api/blogs/${id}`, {
         headers: authHeaders,
       });
       
@@ -299,7 +299,7 @@ const BlogDetail = () => {
       if (isLoggedIn) {
         try {
           const likeRes = await axios.get(
-            `https://book-management-backend-d481.onrender.com/api/blogs/${id}/likes/has`,
+            `https://https://book-management-backend-eghi.onrender.com/api/blogs/${id}/likes/has`,
             { headers: authHeaders }
           );
           hasLiked = likeRes.data;
@@ -321,12 +321,12 @@ const BlogDetail = () => {
     if (!isLoggedIn || !blog) return;
     try {
       if (blog.hasLiked) {
-        await axios.delete(`https://book-management-backend-d481.onrender.com/api/blogs/${id}/likes`, {
+        await axios.delete(`https://https://book-management-backend-eghi.onrender.com/api/blogs/${id}/likes`, {
           headers: authHeaders,
         });
       } else {
         await axios.post(
-          `https://book-management-backend-d481.onrender.com/api/blogs/${id}/likes`,
+          `https://https://book-management-backend-eghi.onrender.com/api/blogs/${id}/likes`,
           {},
           { headers: authHeaders }
         );
@@ -342,7 +342,7 @@ const BlogDetail = () => {
     try {
       setLoadingComment(loadingKey);
       await axios.post(
-        `https://book-management-backend-d481.onrender.com/api/blogs/${id}/comments`,
+        `https://https://book-management-backend-eghi.onrender.com/api/blogs/${id}/comments`,
         {
           blogId: id,
           content,
@@ -366,7 +366,7 @@ const BlogDetail = () => {
   const editComment = async (commentId, content) => {
     try {
       await axios.put(
-        `https://book-management-backend-d481.onrender.com/api/blogs/comments/${commentId}`,
+        `https://https://book-management-backend-eghi.onrender.com/api/blogs/comments/${commentId}`,
         { content },
         { headers: authHeaders }
       );
@@ -379,7 +379,7 @@ const BlogDetail = () => {
 
   const deleteComment = async (commentId) => {
     try {
-      await axios.delete(`https://book-management-backend-d481.onrender.com/api/blogs/comments/${commentId}`, {
+      await axios.delete(`https://https://book-management-backend-eghi.onrender.com/api/blogs/comments/${commentId}`, {
         headers: authHeaders,
       });
       fetchBlogDetail();
@@ -405,7 +405,7 @@ const BlogDetail = () => {
     if (!editing) return;
     try {
       await axios.put(
-        `https://book-management-backend-d481.onrender.com/api/blogs/${id}`,
+        `https://https://book-management-backend-eghi.onrender.com/api/blogs/${id}`,
         {
           title: editing.title.trim(),
           content: editing.content.trim(),
@@ -422,7 +422,7 @@ const BlogDetail = () => {
 
   const removeBlog = async () => {
     try {
-      await axios.delete(`https://book-management-backend-d481.onrender.com/api/blogs/${id}`, {
+      await axios.delete(`https://https://book-management-backend-eghi.onrender.com/api/blogs/${id}`, {
         headers: authHeaders,
       });
       navigate('/blog');

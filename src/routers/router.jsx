@@ -36,7 +36,7 @@ const router = createBrowserRouter([
       {
         path: "/book/:id",
         element: <SingleBook />,
-        loader: ({ params }) => fetch(`https://book-management-backend-d481.onrender.com/api/books/${params.id}`)
+        loader: ({ params }) => fetch(`https://https://book-management-backend-eghi.onrender.com/api/books/${params.id}`)
       },
       {
         path: "/book/:id/read",
@@ -53,7 +53,7 @@ const router = createBrowserRouter([
       {
         path: "/blog/:id",
         element: <BlogDetail />,
-        loader: ({ params }) => fetch(`https://book-management-backend-d481.onrender.com/api/blogs/${params.id}`)
+        loader: ({ params }) => fetch(`https://https://book-management-backend-eghi.onrender.com/api/blogs/${params.id}`)
       }
     ]
   },
@@ -68,7 +68,7 @@ const router = createBrowserRouter([
       { path: "/admin/dashboard/favorite", element: <Favorite /> },
       { path: "/admin/dashboard/favorite", element: <PrivateRoute><Favorite /></PrivateRoute> },
       { path: "/admin/dashboard/edit-books/:id", element: <EditBooks />,
-      loader: ({ params }) => fetch(`https://book-management-backend-d481.onrender.com/api/books/${params.id}`)
+      loader: ({ params }) => fetch(`https://https://book-management-backend-eghi.onrender.com/api/books/${params.id}`)
     },
     ],
   },
